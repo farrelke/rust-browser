@@ -1,3 +1,8 @@
+
+## Demo
+
+https://rust-browser.netlify.app/
+
 ## How to install
 
 ```sh
