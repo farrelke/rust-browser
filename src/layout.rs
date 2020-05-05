@@ -4,7 +4,7 @@ use crate::css::Value::{Keyword, Length};
 use crate::style::{Display, StyledNode};
 use serde::{Deserialize, Serialize};
 use std::default::Default;
-// use web_sys::console;
+use web_sys::console;
 
 pub use self::BoxType::{AnonymousBlock, BlockNode, InlineNode};
 
@@ -17,7 +17,7 @@ pub struct Rect {
     pub height: f32,
 }
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 pub struct Dimensions {
     /// Position of the content area relative to the document origin:
     pub content: Rect,
@@ -27,7 +27,7 @@ pub struct Dimensions {
     pub margin: EdgeSizes,
 }
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 pub struct EdgeSizes {
     pub left: f32,
     pub right: f32,
@@ -81,7 +81,6 @@ pub fn layout_tree<'a>(
 
 /// Build the tree of LayoutBoxes, but don't perform any layout calculations yet.
 fn build_layout_tree<'a>(style_node: &'a StyledNode<'a>) -> LayoutBox<'a> {
-    // console::log_1(&"Hello using web-sys".into());
     // Create the root box.
     let mut root = LayoutBox::new(match style_node.display() {
         Display::Block => BlockNode(style_node),
@@ -108,7 +107,8 @@ impl<'a> LayoutBox<'a> {
     fn layout(&mut self, containing_block: Dimensions) {
         match self.box_type {
             BlockNode(_) => self.layout_block(containing_block),
-            InlineNode(_) | AnonymousBlock => self.inline_layout_block(containing_block),
+            InlineNode(_) => self.inline_layout_block(containing_block),
+            AnonymousBlock => self.inline_layout_block(containing_block),
         }
     }
 
@@ -134,6 +134,15 @@ impl<'a> LayoutBox<'a> {
         let d = &mut self.dimensions;
         d.content.x = containing_block.content.x;
         d.content.y = containing_block.content.y;
+        d.content.width = containing_block.content.width;
+        d.content.height = containing_block.content.height;
+
+        // Recursively lay out the children of this box.
+        self.layout_block_children();
+
+        // Parent height can depend on child height, so `calculate_height` must be called after the
+        // children are laid out.
+        // self.calculate_block_height();
     }
 
     /// Calculate the width of a block-level non-replaced element in normal flow.

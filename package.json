@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "build": "rimraf dist pkg && webpack",
+    "build-netlify": "rimraf dist pkg && webpack --netlify",
     "start": "rimraf dist pkg && webpack-dev-server --open -d",
     "test": "cargo test && wasm-pack test --headless",
     "format": "cargo fmt"

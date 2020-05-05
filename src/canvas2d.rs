@@ -37,10 +37,11 @@ pub fn paint_item(ctx: &web_sys::CanvasRenderingContext2d, item: &DisplayCommand
                 rect.height as f64,
             );
         }
-        DisplayCommand::Text(rect, ref text) => {
+        DisplayCommand::Text(rect, ref text, color) => {
             ctx.set_font("10px serif");
             ctx.set_text_baseline("hanging");
-            ctx.set_fill_style(&wasm_bindgen::JsValue::from_str("blue"));
+            let font_color = format!("rgba({},{},{},{})", color.r, color.g, color.b, color.a);
+            ctx.set_fill_style(&wasm_bindgen::JsValue::from_str(&font_color));
             ctx.fill_text(text, rect.x as f64, rect.y as f64);
         }
     }

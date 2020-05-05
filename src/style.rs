@@ -7,6 +7,9 @@ use crate::css::{Rule, Selector, SimpleSelector, Specificity, Stylesheet, Value}
 use crate::dom::{ElementData, Node, NodeType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use wasm_bindgen::JsValue;
+use web_sys::console;
+
 
 /// Map from CSS property names to values.
 pub type PropertyMap = HashMap<String, Value>;
@@ -16,7 +19,7 @@ pub type PropertyMap = HashMap<String, Value>;
 pub struct StyledNode<'a> {
     pub node: &'a Node,
     pub specified_values: PropertyMap,
-    pub children: Vec<StyledNode<'a>>,
+    pub  children: Vec<StyledNode<'a>>,
 }
 
 #[derive(PartialEq, Serialize, Deserialize)]
@@ -56,26 +59,33 @@ impl<'a> StyledNode<'a> {
 ///
 /// This finds only the specified values at the moment. Eventually it should be extended to find the
 /// computed values too, including inherited values.
-pub fn style_tree<'a>(root: &'a Node, stylesheet: &'a Stylesheet) -> StyledNode<'a> {
-    StyledNode {
+pub fn style_tree<'a>(
+    root: &'a Node,
+    stylesheet: &'a Stylesheet,
+    parent: Option<&StyledNode<'a>>,
+) -> StyledNode<'a> {
+    let mut node = StyledNode {
         node: root,
         specified_values: match root.node_type {
-            NodeType::Element(ref elem) => specified_values(elem, stylesheet),
-            NodeType::Text(_) => HashMap::new(),
+            NodeType::Element(ref elem) => specified_values(parent, elem, stylesheet),
+            NodeType::Text(_) => inherit_rules(parent),
         },
-        children: root
-            .children
-            .iter()
-            .map(|child| style_tree(child, stylesheet))
-            .collect(),
-    }
+        children: Vec::new()
+    };
+    node.children =  root
+        .children
+        .iter()
+        .map(|child| style_tree(child, stylesheet, Some(&node)))
+        .collect();
+
+    node
 }
 
 /// Apply styles to a single element, returning the specified styles.
 ///
 /// To do: Allow multiple UA/author/user stylesheets, and implement the cascade.
-fn specified_values(elem: &ElementData, stylesheet: &Stylesheet) -> PropertyMap {
-    let mut values = HashMap::new();
+fn specified_values(parent: Option<&StyledNode>, elem: &ElementData, stylesheet: &Stylesheet) -> PropertyMap {
+    let mut values = inherit_rules(parent);
     let mut rules = matching_rules(elem, stylesheet);
 
     // Go through the rules from lowest to highest specificity.
@@ -86,6 +96,23 @@ fn specified_values(elem: &ElementData, stylesheet: &Stylesheet) -> PropertyMap 
         }
     }
     values
+}
+
+fn inherit_rules(
+    parent: Option<&StyledNode>
+) -> PropertyMap {
+    let mut values = HashMap::new();
+    match parent {
+        Some(node) => {
+            for (key, val) in node.specified_values.iter() {
+                if should_inherit_rule(key) {
+                    values.insert(key.clone(), val.clone());
+                }
+            };
+            values
+        }
+        _ => values,
+    }
 }
 
 /// A single CSS rule and the specificity of its most specific matching selector.
@@ -142,4 +169,11 @@ fn matches_simple_selector(elem: &ElementData, selector: &SimpleSelector) -> boo
 
     // We didn't find any non-matching selector components.
     true
+}
+
+fn should_inherit_rule(rule: &String) -> bool {
+    match rule.as_ref() {
+        "color" => true,
+        _ => false,
+    }
 }

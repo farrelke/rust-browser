@@ -1,28 +1,28 @@
 const rust = import("../pkg/index.js");
 
-const defaultHtml = `
-<div class="a">
-  <div class="b">
-  My Text
-  </div>
-</div>
-      `;
+const defaultHtml = `<div class="a">My Text</div>`;
 
 //language=css
 const defaultCss = `
- * { display: block; padding: 12px; }
-.a { background: #ff0000; }
-.b { background: #ffa500; }
-.c { background: #ffff00; }
-.d { background: #008000; }
-.e { background: #0000ff; }
-.f { background: #4b0082; }
-.g { background: #800080; }
-    `;
+ * { 
+    display: block; 
+    padding: 12px; 
+ }
+ 
+.a { 
+    background: #ff0000; 
+    color: #FFFFFF; 
+}`;
 
 let renderer;
 
+
+
 window.onload = () => {
+  if (NETLIFY) {
+    document.getElementById("badge").style.display = "block"
+  }
+
   const htmlBox = document.getElementById("htmlcode");
   const cssBox = document.getElementById("csscode");
   const displayListBox = document.getElementById("display-list");

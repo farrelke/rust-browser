@@ -1,8 +1,10 @@
 const path = require("path");
+const webpack = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
-const dist = path.resolve(__dirname, "dist");
+const netlifyBuild =  process.argv.indexOf('--netlify') !== -1;
+const dist = path.resolve(__dirname, netlifyBuild ? "netlify" : "dist");
 
 module.exports = {
   mode: "production",
@@ -14,15 +16,17 @@ module.exports = {
     filename: "[name].js"
   },
   devServer: {
-    contentBase: dist,
+    contentBase: dist
   },
   plugins: [
-    new CopyPlugin([
-      path.resolve(__dirname, "static")
-    ]),
+    new CopyPlugin([path.resolve(__dirname, "static")]),
 
     new WasmPackPlugin({
-      crateDirectory: __dirname,
+      crateDirectory: __dirname
     }),
+
+    new webpack.DefinePlugin({
+      NETLIFY: JSON.stringify(netlifyBuild)
+    })
   ]
 };

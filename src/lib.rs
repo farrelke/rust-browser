@@ -24,7 +24,7 @@ pub fn render(html_str: String, css_str: String) -> Result<JsValue, JsValue> {
     let root_node = html::parse(html_str);
     let stylesheet = css::parse(css_str);
 
-    let style_root = style::style_tree(&root_node, &stylesheet);
+    let style_root = style::style_tree(&root_node, &stylesheet, None);
 
     // Since we don't have an actual window, hard-code the "viewport" size.
     let mut viewport: layout::Dimensions = Default::default();

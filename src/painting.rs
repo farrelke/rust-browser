@@ -2,11 +2,12 @@ use crate::css::{Color, Value};
 use crate::dom::NodeType;
 use crate::layout::{AnonymousBlock, BlockNode, InlineNode, LayoutBox, Rect};
 use serde::{Deserialize, Serialize};
+use web_sys::console;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum DisplayCommand {
     SolidColor(Rect, Color),
-    Text(Rect, String),
+    Text(Rect, String, Color),
 }
 
 pub type DisplayList = Vec<DisplayCommand>;
@@ -27,18 +28,21 @@ fn render_layout_box(list: &mut DisplayList, layout_box: &LayoutBox) {
 }
 
 fn render_text(list: &mut DisplayList, layout_box: &LayoutBox) {
-    match layout_box.box_type {
-        BlockNode(style) | InlineNode(style) => match &style.node.node_type {
-            NodeType::Text(text) => {
-                let text = text.parse().unwrap();
-                let d = &layout_box.dimensions;
-                let border_box = d.border_box();
-                list.push(DisplayCommand::Text(border_box, text));
-            }
-            _ => return,
-        },
-        AnonymousBlock => return,
-    };
+    get_text(layout_box).map(|text| {
+        let font_color = get_color_or(
+            layout_box,
+            "color",
+            Color {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 255,
+            },
+        );
+        let d = &layout_box.dimensions;
+        let border_box = d.content;
+        list.push(DisplayCommand::Text(border_box, text, font_color));
+    });
 }
 
 fn render_background(list: &mut DisplayList, layout_box: &LayoutBox) {
@@ -109,6 +113,26 @@ fn get_color(layout_box: &LayoutBox, name: &str) -> Option<Color> {
     match layout_box.box_type {
         BlockNode(style) | InlineNode(style) => match style.value(name) {
             Some(Value::ColorValue(color)) => Some(color),
+            _ => None,
+        },
+        AnonymousBlock => None,
+    }
+}
+
+fn get_color_or(layout_box: &LayoutBox, name: &str, color: Color) -> Color {
+    match layout_box.box_type {
+        BlockNode(style) | InlineNode(style) => match style.value(name) {
+            Some(Value::ColorValue(color)) => color,
+            _ => color,
+        },
+        AnonymousBlock => color,
+    }
+}
+
+fn get_text(layout_box: &LayoutBox) -> Option<String> {
+    match layout_box.box_type {
+        BlockNode(style) | InlineNode(style) => match &style.node.node_type {
+            NodeType::Text(text) => Some(text.clone()),
             _ => None,
         },
         AnonymousBlock => None,
