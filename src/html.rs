@@ -1,9 +1,12 @@
 use crate::dom;
 use std::collections::HashMap;
 
-
 pub fn parse(source: String) -> dom::Node {
-    let mut nodes = Parser { pos: 0, input: source }.parse_nodes();
+    let mut nodes = Parser {
+        pos: 0,
+        input: source,
+    }
+    .parse_nodes();
 
     // If the document contains a root element, just return it. Otherwise, create one.
     if nodes.len() == 1 {
@@ -17,7 +20,6 @@ struct Parser {
     pos: usize,
     input: String,
 }
-
 
 impl Parser {
     fn next_char(&self) -> char {
@@ -40,7 +42,10 @@ impl Parser {
         return cur_char;
     }
 
-    fn consume_while<F>(&mut self, test: F) -> String where F: Fn(char) -> bool {
+    fn consume_while<F>(&mut self, test: F) -> String
+    where
+        F: Fn(char) -> bool,
+    {
         let mut result = String::new();
         while !self.eof() && test(self.next_char()) {
             result.push(self.consume_char());
@@ -55,7 +60,7 @@ impl Parser {
     fn parse_tag_name(&mut self) -> String {
         self.consume_while(|c| match c {
             'a'..='z' | 'A'..='Z' | '0'..='9' => true,
-            _ => false
+            _ => false,
         })
     }
 
@@ -67,11 +72,10 @@ impl Parser {
         return value;
     }
 
-
     fn parse_node(&mut self) -> dom::Node {
         match self.next_char() {
             '<' => self.parse_element(),
-            _   => self.parse_text()
+            _ => self.parse_text(),
         }
     }
 
@@ -131,5 +135,3 @@ impl Parser {
         return nodes;
     }
 }
-
-

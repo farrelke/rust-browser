@@ -1,7 +1,6 @@
-use crate::painting::{DisplayList, DisplayCommand};
 use crate::layout::Rect;
+use crate::painting::{DisplayCommand, DisplayList};
 use wasm_bindgen::JsCast;
-
 
 pub fn paint(viewport: Rect, display_list: &DisplayList) {
     let document = web_sys::window().unwrap().document().unwrap();
@@ -21,19 +20,22 @@ pub fn paint(viewport: Rect, display_list: &DisplayList) {
         .dyn_into::<web_sys::CanvasRenderingContext2d>()
         .unwrap();
 
-
     for item in display_list {
         paint_item(&context, &item);
     }
 }
-
 
 pub fn paint_item(ctx: &web_sys::CanvasRenderingContext2d, item: &DisplayCommand) {
     match *item {
         DisplayCommand::SolidColor(rect, color) => {
             let fill_color = format!("rgba({},{},{},{})", color.r, color.g, color.b, color.a);
             ctx.set_fill_style(&wasm_bindgen::JsValue::from_str(&fill_color));
-            ctx.fill_rect(rect.x as f64, rect.y as f64, rect.width as f64, rect.height as f64);
+            ctx.fill_rect(
+                rect.x as f64,
+                rect.y as f64,
+                rect.width as f64,
+                rect.height as f64,
+            );
         }
         DisplayCommand::Text(rect, ref text) => {
             ctx.set_font("10px serif");

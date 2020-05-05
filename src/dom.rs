@@ -8,7 +8,7 @@ pub struct Node {
     // data common to all nodes:
     pub children: Vec<Node>,
     // data specific to each node type:
-    pub node_type: NodeType
+    pub node_type: NodeType,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -24,13 +24,16 @@ pub struct ElementData {
 }
 
 pub fn text(data: String) -> Node {
-    Node { children: Vec::new(), node_type: NodeType::Text(data) }
+    Node {
+        children: Vec::new(),
+        node_type: NodeType::Text(data),
+    }
 }
 
-pub fn elem(name: String, attrs: AttrMap,  children: Vec<Node>) -> Node {
+pub fn elem(name: String, attrs: AttrMap, children: Vec<Node>) -> Node {
     Node {
         children: children,
-        node_type: NodeType::Element( ElementData {
+        node_type: NodeType::Element(ElementData {
             tag_name: name,
             attributes: attrs,
         }),
@@ -47,7 +50,7 @@ impl ElementData {
     pub fn classes(&self) -> HashSet<&str> {
         match self.attributes.get("class") {
             Some(classlist) => classlist.split(' ').collect(),
-            None => HashSet::new()
+            None => HashSet::new(),
         }
     }
 }

@@ -1,13 +1,12 @@
-
-use crate::layout::{AnonymousBlock, BlockNode, InlineNode, LayoutBox, Rect};
-use crate::css::{Value, Color};
-use serde::{Deserialize, Serialize};
+use crate::css::{Color, Value};
 use crate::dom::NodeType;
+use crate::layout::{AnonymousBlock, BlockNode, InlineNode, LayoutBox, Rect};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum DisplayCommand {
     SolidColor(Rect, Color),
-    Text(Rect, String)
+    Text(Rect, String),
 }
 
 pub type DisplayList = Vec<DisplayCommand>;
@@ -35,58 +34,74 @@ fn render_text(list: &mut DisplayList, layout_box: &LayoutBox) {
                 let d = &layout_box.dimensions;
                 let border_box = d.border_box();
                 list.push(DisplayCommand::Text(border_box, text));
-            },
-            _ => return
+            }
+            _ => return,
         },
-        AnonymousBlock => return
+        AnonymousBlock => return,
     };
 }
 
 fn render_background(list: &mut DisplayList, layout_box: &LayoutBox) {
-    get_color(layout_box, "background").map(|color|
-        list.push(DisplayCommand::SolidColor(layout_box.dimensions.border_box(), color)));
+    get_color(layout_box, "background").map(|color| {
+        list.push(DisplayCommand::SolidColor(
+            layout_box.dimensions.border_box(),
+            color,
+        ))
+    });
 }
 
 fn render_borders(list: &mut DisplayList, layout_box: &LayoutBox) {
     let color = match get_color(layout_box, "border-color") {
         Some(color) => color,
-        _ => return
+        _ => return,
     };
 
     let d = &layout_box.dimensions;
     let border_box = d.border_box();
 
     // Left border
-    list.push(DisplayCommand::SolidColor(Rect {
-        x: border_box.x,
-        y: border_box.y,
-        width: d.border.left,
-        height: border_box.height,
-    }, color));
+    list.push(DisplayCommand::SolidColor(
+        Rect {
+            x: border_box.x,
+            y: border_box.y,
+            width: d.border.left,
+            height: border_box.height,
+        },
+        color,
+    ));
 
     // Right border
-    list.push(DisplayCommand::SolidColor(Rect {
-        x: border_box.x + border_box.width - d.border.right,
-        y: border_box.y,
-        width: d.border.right,
-        height: border_box.height,
-    }, color));
+    list.push(DisplayCommand::SolidColor(
+        Rect {
+            x: border_box.x + border_box.width - d.border.right,
+            y: border_box.y,
+            width: d.border.right,
+            height: border_box.height,
+        },
+        color,
+    ));
 
     // Top border
-    list.push(DisplayCommand::SolidColor(Rect {
-        x: border_box.x,
-        y: border_box.y,
-        width: border_box.width,
-        height: d.border.top,
-    }, color));
+    list.push(DisplayCommand::SolidColor(
+        Rect {
+            x: border_box.x,
+            y: border_box.y,
+            width: border_box.width,
+            height: d.border.top,
+        },
+        color,
+    ));
 
     // Bottom border
-    list.push(DisplayCommand::SolidColor(Rect {
-        x: border_box.x,
-        y: border_box.y + border_box.height - d.border.bottom,
-        width: border_box.width,
-        height: d.border.bottom,
-    }, color));
+    list.push(DisplayCommand::SolidColor(
+        Rect {
+            x: border_box.x,
+            y: border_box.y + border_box.height - d.border.bottom,
+            width: border_box.width,
+            height: d.border.bottom,
+        },
+        color,
+    ));
 }
 
 /// Return the specified color for CSS property `name`, or None if no color was specified.
@@ -94,12 +109,11 @@ fn get_color(layout_box: &LayoutBox, name: &str) -> Option<Color> {
     match layout_box.box_type {
         BlockNode(style) | InlineNode(style) => match style.value(name) {
             Some(Value::ColorValue(color)) => Some(color),
-            _ => None
+            _ => None,
         },
-        AnonymousBlock => None
+        AnonymousBlock => None,
     }
 }
-
 
 trait Clamp {
     fn clamp(self, lower: Self, upper: Self) -> Self;
