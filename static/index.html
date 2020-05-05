@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rust Web Browser!</title>
+
+    <link rel="stylesheet" href="prism.css" />
+    <link rel="stylesheet" href="prism-live.css" />
+    <link rel="stylesheet" href="prism-json.css" data-noprefix />
+
+    <script src="index.js"></script>
+    <style>
+      body {
+        box-sizing: border-box;
+        display: flex;
+        background-color: #eee;
+      }
+
+      .code {
+        flex-shrink: 0;
+        width: 400px;
+        margin-right: 10px;
+      }
+
+      .codebox {
+        width: 100%;
+        margin-bottom: 15px;
+        height: 300px;
+        overflow: scroll;
+      }
+
+      .prism-live {
+        margin-bottom: 15px;
+        box-shadow: 2px 2px 6px 1px rgba(0, 0, 0, 0.05);
+      }
+
+      button {
+        display: inline-block;
+      }
+
+      .renderer__header {
+        width: 100%;
+        height: 30px;
+      }
+
+      .list-box {
+        width: 800px;
+        min-width: 400px;
+        box-shadow: 2px 2px 6px 1px rgba(0, 0, 0, 0.25);
+        min-height: 400px;
+        display: none;
+        background: #f5f2f0;
+        padding-left: 30px;
+      }
+
+      .link {
+        margin-left: 10px;
+      }
+
+      canvas {
+        background: white;
+        box-shadow: 2px 2px 6px 1px rgba(0, 0, 0, 0.25);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="code">
+      <h3>HTML</h3>
+      <textarea
+        id="htmlcode"
+        class="codebox -html prism-live language-html"
+      ></textarea>
+      <h3>CSS</h3>
+      <textarea
+        id="csscode"
+        class="codebox -css  prism-live language-css"
+      ></textarea>
+    </div>
+    <div class="renderer">
+      <div class="renderer__header">
+        <button id="canvas-btn">Renderer</button>
+        <button id="display-list-btn">Display List</button>
+        <button id="dom-list-btn">Dom Nodes</button>
+        <button id="style-list-btn">Style Nodes</button>
+        <span class="link"
+          >Based on
+          <a
+            href="https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html"
+            >Let's build a browser engine!</a
+          ></span
+        >
+      </div>
+      <canvas id="canvas"></canvas>
+      <div id="display-list-wrapper" class="list-box">
+        <code id="display-list" class="language-json"></code>
+      </div>
+      <div id="css-list-wrapper" class="list-box">
+        <code id="style-list" class="language-json"></code>
+      </div>
+      <div id="dom-list-wrapper" class="list-box">
+        <code id="dom-list" class="language-json"></code>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="prism.js" charset="utf-8"></script>
+    <script
+      type="text/javascript"
+      src="prism-live.js?load=css,html,jsonp"
+      charset="utf-8"
+    ></script>
+    <script type="text/javascript" src="renderjson.js"></script>
+  </body>
+</html>
