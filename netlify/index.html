@@ -42,6 +42,10 @@
         height: 30px;
       }
 
+      .renderer__header button {
+        margin-right: 5px;
+      }
+
       .list-box {
         width: 800px;
         min-width: 400px;
@@ -52,13 +56,17 @@
         padding-left: 30px;
       }
 
-      .link {
-        margin-left: 10px;
-      }
-
+      .iframe-box,
       canvas {
+        width: 800px;
+        height: 600px;
         background: white;
         box-shadow: 2px 2px 6px 1px rgba(0, 0, 0, 0.25);
+      }
+
+      .iframe-box {
+        border: none;
+        display: none;
       }
 
       .fork-badge {
@@ -70,7 +78,10 @@
     </style>
   </head>
   <body>
-    <a id="badge" class="fork-badge" href="https://github.com/farrelke/rust-browser"
+    <a
+      id="badge"
+      class="fork-badge"
+      href="https://github.com/farrelke/rust-browser"
       ><img
         width="149"
         height="149"
@@ -94,10 +105,7 @@
     </div>
     <div class="renderer">
       <div class="renderer__header">
-        <button id="canvas-btn">Renderer</button>
-        <button id="display-list-btn">Display List</button>
-        <button id="dom-list-btn">Dom Nodes</button>
-        <button id="style-list-btn">Style Nodes</button>
+        <span id="header-buttons" class="buttons"></span>
         <span class="link"
           >Based on
           <a
@@ -106,16 +114,7 @@
           ></span
         >
       </div>
-      <canvas id="canvas"></canvas>
-      <div id="display-list-wrapper" class="list-box">
-        <code id="display-list" class="language-json"></code>
-      </div>
-      <div id="css-list-wrapper" class="list-box">
-        <code id="style-list" class="language-json"></code>
-      </div>
-      <div id="dom-list-wrapper" class="list-box">
-        <code id="dom-list" class="language-json"></code>
-      </div>
+      <div id="render-content"></div>
     </div>
 
     <script type="text/javascript" src="prism.js" charset="utf-8"></script>
