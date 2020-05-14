@@ -10,16 +10,15 @@ use std::collections::HashMap;
 use wasm_bindgen::JsValue;
 use web_sys::console;
 
-
 /// Map from CSS property names to values.
 pub type PropertyMap = HashMap<String, Value>;
 
 /// A node with associated style data.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct StyledNode<'a> {
     pub node: &'a Node,
     pub specified_values: PropertyMap,
-    pub  children: Vec<StyledNode<'a>>,
+    pub children: Vec<StyledNode<'a>>,
 }
 
 #[derive(PartialEq, Serialize, Deserialize)]
@@ -70,9 +69,9 @@ pub fn style_tree<'a>(
             NodeType::Element(ref elem) => specified_values(parent, elem, stylesheet),
             NodeType::Text(_) => inherit_rules(parent),
         },
-        children: Vec::new()
+        children: Vec::new(),
     };
-    node.children =  root
+    node.children = root
         .children
         .iter()
         .map(|child| style_tree(child, stylesheet, Some(&node)))
@@ -84,7 +83,11 @@ pub fn style_tree<'a>(
 /// Apply styles to a single element, returning the specified styles.
 ///
 /// To do: Allow multiple UA/author/user stylesheets, and implement the cascade.
-fn specified_values(parent: Option<&StyledNode>, elem: &ElementData, stylesheet: &Stylesheet) -> PropertyMap {
+fn specified_values(
+    parent: Option<&StyledNode>,
+    elem: &ElementData,
+    stylesheet: &Stylesheet,
+) -> PropertyMap {
     let mut values = inherit_rules(parent);
     let mut rules = matching_rules(elem, stylesheet);
 
@@ -98,9 +101,7 @@ fn specified_values(parent: Option<&StyledNode>, elem: &ElementData, stylesheet:
     values
 }
 
-fn inherit_rules(
-    parent: Option<&StyledNode>
-) -> PropertyMap {
+fn inherit_rules(parent: Option<&StyledNode>) -> PropertyMap {
     let mut values = HashMap::new();
     match parent {
         Some(node) => {
@@ -108,7 +109,7 @@ fn inherit_rules(
                 if should_inherit_rule(key) {
                     values.insert(key.clone(), val.clone());
                 }
-            };
+            }
             values
         }
         _ => values,

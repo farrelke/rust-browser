@@ -16,24 +16,84 @@ const defaultCss = `
 
 let renderer;
 
-
-
 window.onload = () => {
   if (NETLIFY) {
-    document.getElementById("badge").style.display = "block"
+    document.getElementById("badge").style.display = "block";
   }
 
   const htmlBox = document.getElementById("htmlcode");
   const cssBox = document.getElementById("csscode");
-  const displayListBox = document.getElementById("display-list");
-  const styleListBox = document.getElementById("style-list");
-  const domListBox = document.getElementById("dom-list");
-  const canvasWrapper = document.getElementById("canvas");
+  htmlBox.value = localStorage.getItem("html") || defaultHtml.trim();
+  cssBox.value = localStorage.getItem("css") || defaultCss.trim();
 
-  htmlBox.value = defaultHtml.trim();
-  cssBox.value = defaultCss.trim();
+  const displayBoxes = {};
+  const setTabVisible = activeType => {
+    Object.entries(displayBoxes).forEach(([type, node]) => {
+      const parentNode =
+        type === "canvas" || type === "iframe" ? node : node.parentNode;
+      parentNode.style.display = type === activeType ? "block" : "none";
+    });
+  };
 
-  const updateBox = (node, value, level) => {
+  const buttons = document.getElementById("header-buttons");
+  const renderContent = document.getElementById("render-content");
+
+  const addTabBtn = (text, type) => {
+    const button = document.createElement("button");
+    button.innerText = text;
+    buttons.appendChild(button);
+
+    let box = null;
+    if (type === "canvas") {
+      box = document.createElement("canvas");
+      box.id = "canvas";
+      renderContent.appendChild(box);
+    } else if (type === "iframe") {
+      box = document.createElement("iframe");
+      box.id = "iframe";
+      box.classList.add("iframe-box");
+      renderContent.appendChild(box);
+    } else {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("list-box");
+      box = document.createElement("code");
+      box.classList.add("language-json");
+      wrapper.appendChild(box);
+      renderContent.appendChild(wrapper);
+    }
+
+    displayBoxes[type] = box;
+    button.addEventListener("click", () => {
+      setTabVisible(type);
+    });
+  };
+
+  addTabBtn("Renderer", "canvas");
+  addTabBtn("Iframe ", "iframe");
+  addTabBtn("Dom Nodes", "dom");
+  addTabBtn("Style Nodes", "style");
+  addTabBtn("Layout Nodes", "layout");
+  addTabBtn("Display List", "display");
+
+  const updateIframe = () => {
+    const iframe = displayBoxes.iframe;
+    if (!iframe) return;
+    console.log(cssBox.value, htmlBox.value);
+    const html = `<head>
+        <style>
+          head { display: none }
+          body, html { padding: 0; margin: 0 }
+          ${cssBox.value}
+          </style>
+     </head>
+     <body>${htmlBox.value}</body>`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    iframe.src = window.URL.createObjectURL(blob);
+  };
+
+  const updateBox = (type, value, level) => {
+    const node = displayBoxes[type];
     node.innerHTML = "";
     node.appendChild(renderjson.set_show_to_level(level)(value));
   };
@@ -41,10 +101,16 @@ window.onload = () => {
   const render = () => {
     if (!renderer) return;
     const res = renderer.render(htmlBox.value, cssBox.value);
+
+    localStorage.setItem("css", cssBox.value);
+    localStorage.setItem("html", htmlBox.value);
+
     // console.log( Prism.languages)
-    updateBox(displayListBox, res.display_list, 3);
-    updateBox(domListBox, res.dom, 4);
-    updateBox(styleListBox, res.style, 7);
+    updateBox("display", res.display_list, 3);
+    updateBox("dom", res.dom, 4);
+    updateBox("layout", res.layout, 3);
+    updateBox("style", res.style, 7);
+    updateIframe();
   };
 
   rust
@@ -61,24 +127,4 @@ window.onload = () => {
   // force prism-live to resize text boxes
   window.dispatchEvent(new Event("resize"));
   render();
-
-  const setTabVisible = type => {
-    displayListBox.parentNode.style.display =
-      type === "display" ? "block" : "none";
-    styleListBox.parentNode.style.display = type === "style" ? "block" : "none";
-    domListBox.parentNode.style.display = type === "dom" ? "block" : "none";
-    canvasWrapper.style.display = type === "canvas" ? "block" : "none";
-  };
-
-  const addTabBtn = (id, type) => {
-    const node = document.getElementById(id);
-    node.addEventListener("click", () => {
-      setTabVisible(type);
-    });
-  };
-
-  addTabBtn("display-list-btn", "display");
-  addTabBtn("style-list-btn", "style");
-  addTabBtn("dom-list-btn", "dom");
-  addTabBtn("canvas-btn", "canvas");
 };

@@ -13,6 +13,7 @@ pub mod style;
 struct ReturnVal {
     pub dom: dom::Node,
     pub style: css::Stylesheet,
+    pub layout: layout::DisplayLayoutNode,
     pub display_list: painting::DisplayList,
 }
 
@@ -35,11 +36,12 @@ pub fn render(html_str: String, css_str: String) -> Result<JsValue, JsValue> {
 
     canvas2d::paint(viewport.content, &display_list);
 
-    let returnVal = ReturnVal {
+    let return_val = ReturnVal {
+        layout: layout_root.to_display_tree(),
         dom: root_node,
         style: stylesheet,
         display_list: display_list,
     };
 
-    Ok(JsValue::from_serde(&returnVal).unwrap())
+    Ok(JsValue::from_serde(&return_val).unwrap())
 }

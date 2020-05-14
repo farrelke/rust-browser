@@ -3,7 +3,7 @@
 //! To support more CSS syntax, it would probably be easiest to replace this
 //! hand-rolled parser with one based on a library or parser generator.
 use serde::{Deserialize, Serialize};
-
+use web_sys::console;
 // Data structures:
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -45,6 +45,7 @@ pub enum Value {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub enum Unit {
     Px,
+    Pct,
 }
 
 #[derive(Debug, Clone, PartialEq, Default, Deserialize, Serialize)]
@@ -72,9 +73,10 @@ impl Selector {
 
 impl Value {
     /// Return the size of a length in px, or zero for non-lengths.
-    pub fn to_px(&self) -> f32 {
+    pub fn to_px(&self, full_width: f32) -> f32 {
         match *self {
             Value::Length(f, Unit::Px) => f,
+            Value::Length(f, Unit::Pct) => full_width * (f / 100.0),
             _ => 0.0,
         }
     }
@@ -224,7 +226,11 @@ impl Parser {
     fn parse_unit(&mut self) -> Unit {
         match &*self.parse_identifier().to_ascii_lowercase() {
             "px" => Unit::Px,
-            _ => panic!("unrecognized unit"),
+            "%" =>  Unit::Pct,
+            a => {
+                console::log_1(&a.into());
+                panic!("unrecognized unit")
+            },
         }
     }
 
@@ -289,7 +295,7 @@ impl Parser {
 
 fn valid_identifier_char(c: char) -> bool {
     match c {
-        'a'..='z' | 'A'..='Z' | '0'..='9' | '-' | '_' => true, // TODO: Include U+00A0 and higher.
+        'a'..='z' | 'A'..='Z' | '0'..='9' | '-' | '_' | '%' => true, // TODO: Include U+00A0 and higher.
         _ => false,
     }
 }

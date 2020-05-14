@@ -38,11 +38,11 @@ pub fn paint_item(ctx: &web_sys::CanvasRenderingContext2d, item: &DisplayCommand
             );
         }
         DisplayCommand::Text(rect, ref text, color) => {
-            ctx.set_font("10px serif");
-            ctx.set_text_baseline("hanging");
+            ctx.set_font("16px serif");
+            ctx.set_text_baseline("top");
             let font_color = format!("rgba({},{},{},{})", color.r, color.g, color.b, color.a);
             ctx.set_fill_style(&wasm_bindgen::JsValue::from_str(&font_color));
-            ctx.fill_text(text, rect.x as f64, rect.y as f64);
+            ctx.fill_text(text, rect.x as f64, rect.y as f64 + 2.0);
         }
     }
 }
